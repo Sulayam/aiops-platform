@@ -105,4 +105,3 @@ This project is **Work in Progress (WIP)**.
 Next milestone: **Push images to Docker Hub & deploy on AWS EC2**.
 
 ---
-Would you like me to also prepare a **badge-style progress tracker** (like a checklist visual at the top of the README) so that anyone viewing the repo on GitHub instantly sees how far along the project is?
