@@ -1,0 +1,34 @@
+services:
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: aiops-ollama-dev
+    restart: unless-stopped
+    volumes:
+      - ollama_models:/root/.ollama
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 20s
+
+  agent-api:
+    build: ../agent-api
+    image: sulayam/aiops-agent-api:v1.0.0
+    container_name: aiops-agent-api-dev
+    restart: unless-stopped
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../agent-api/logs:/app/logs
+
+volumes:
+  ollama_models:
