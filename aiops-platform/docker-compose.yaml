@@ -1,8 +1,7 @@
 services:
-
   ollama:
     image: ollama/ollama:latest
-    container_name: aiops-ollama-dev
+    container_name: aiops-ollama-prod
     restart: unless-stopped
     volumes:
       - ollama_models:/root/.ollama
@@ -16,9 +15,8 @@ services:
       start_period: 20s
 
   agent-api:
-    build: ../agent-api
     image: sulayam/aiops-agent-api:v1.0.0
-    container_name: aiops-agent-api-dev
+    container_name: aiops-agent-api-prod
     restart: unless-stopped
     depends_on:
       ollama:
@@ -28,7 +26,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ../agent-api/logs:/app/logs
+      - /opt/aiops/logs:/app/logs   # 👈 server path binding
 
 volumes:
   ollama_models:

@@ -1,0 +1,69 @@
+pipeline {
+  agent any
+
+  environment {
+    IMAGE   = "sulayam/aiops-agent-api"
+    VERSION = "v1.0.${BUILD_NUMBER}"
+  }
+
+  options {
+    timestamps()
+  }
+
+  stages {
+
+    stage('Checkout') {
+      steps {
+        checkout scm
+        sh 'ls -la'
+      }
+    }
+
+    stage('Smoke Test') {
+      steps {
+        dir('agent-api') {
+          sh '''
+            python3 -V || true
+            pip3 install -r requirements.txt || true
+            python3 - << 'PY'
+print("smoke: fastapi import test")
+import fastapi
+print("smoke ok")
+PY
+          '''
+        }
+      }
+    }
+
+    stage('Docker Build') {
+      steps {
+        sh "docker build -t ${IMAGE}:${VERSION} ./agent-api"
+      }
+    }
+
+    stage('Docker Login & Push') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
+                                          passwordVariable: 'DOCKER_PSW',
+                                          usernameVariable: 'DOCKER_USR')]) {
+          sh '''
+            set -e
+            echo "$DOCKER_PSW" | docker login -u "$DOCKER_USR" --password-stdin
+            docker push ${IMAGE}:${VERSION}
+            docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
+            docker push ${IMAGE}:latest
+          '''
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "Pushed ${IMAGE}:${VERSION} and :latest"
+    }
+    failure {
+      echo "Build failed. Check logs."
+    }
+  }
+}
