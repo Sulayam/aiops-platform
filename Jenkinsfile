@@ -9,20 +9,27 @@ pipeline {
   options { timestamps(); disableConcurrentBuilds() }
   parameters { booleanParam(name: 'DEPLOY_TO_EC2', defaultValue: false) }
 
-  stages {
-    stage('Checkout')  { steps { checkout scm } }
-
     stage('Smoke Test') {
       steps {
         dir('agent-api') {
           sh '''
-            python3 -V || true
-            pip3 install -r requirements.txt || true
-            python3 -c "import fastapi, requests; print('imports ok')"
+            set -e
+            python3 -V
+            # Create & use a local venv in the workspace (no system installs)
+            python3 -m venv .venv
+            . .venv/bin/activate
+            python -m pip install --upgrade pip
+            python -m pip install -r requirements.txt
+            python - << 'PY'
+    print("smoke: fastapi+requests import test")
+    import fastapi, requests
+    print("smoke ok")
+    PY
           '''
         }
       }
     }
+
 
     stage('Docker Build') {
       steps { sh "docker build -t ${IMAGE}:${VERSION} ./agent-api" }
