@@ -344,3 +344,62 @@ Perfect — here’s a **Troubleshooting Section** you can paste directly into y
 ✅ With these fixes, you can recover from the most common beginner Kubernetes + Colima issues.
 
 ---
+
+Here’s a **diagram-style summary** you can drop straight into your notes:
+
+---
+
+## 🔄 Kubernetes Object Relationships
+
+```
+                 ┌──────────────────┐
+                 │   Deployment     │
+                 │  (nginx-depl)    │
+                 └───────┬──────────┘
+                         │ manages
+                         ▼
+                 ┌──────────────────┐
+                 │   ReplicaSet     │
+                 │ (e.g. hash ID)   │
+                 └───────┬──────────┘
+                         │ ensures N replicas
+                         ▼
+        ┌─────────────────────────────────┐
+        │             Pods                │
+        │ ┌───────────────┐  ┌──────────┐ │
+        │ │ Pod: nginx-1  │  │ Pod: ... │ │
+        │ │ Container:    │  │ Container│ │
+        │ │ nginx:1.16    │  │ nginx:1.16│ │
+        │ └───────────────┘  └──────────┘ │
+        └─────────────────────────────────┘
+                         ▲
+                         │ exposed by
+                         ▼
+                 ┌──────────────────┐
+                 │     Service      │
+                 │  ClusterIP/Node  │
+                 └────────┬─────────┘
+                          │ routes traffic
+                          ▼
+                    User / Browser
+```
+
+---
+
+### 🗂️ Quick mental model
+
+* **Deployment** → Blueprint + desired state (e.g. “2 Pods of nginx:1.16”).
+* **ReplicaSet** → Watches Pods, recreates if deleted.
+* **Pods** → Actual running containers.
+* **Service** → Gives Pods a stable endpoint (IP/port), handles load balancing.
+* **NodePort Service** → Opens cluster traffic on `localhost:<NodePort>` for external access.
+
+---
+
+👉 With this picture in mind, debugging is easier:
+
+* Pod crashes? → ReplicaSet replaces it.
+* Wrong image? → Fix Deployment → new ReplicaSet → new Pods.
+* Can’t access app? → Check Service type + ports.
+
+---
