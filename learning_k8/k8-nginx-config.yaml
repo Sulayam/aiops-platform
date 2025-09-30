@@ -10,7 +10,7 @@ spec:
   template:
     metadata:
       labels:
-        app: nginx
+        app: nginx # In deployment, the labels/app:nginx must match
     spec:
       containers:
       - name: nginx
@@ -25,10 +25,9 @@ metadata:
 spec:
   type: NodePort   # exposes nginx outside the cluster (handy in Minikube)
   selector:
-    app: nginx
+    app: nginx # In service, the the selector/app:nginx must match the deployment labels/app:nginx
   ports:
     - protocol: TCP
       port: 80
       targetPort: 80
       nodePort: 30080   # fixed port for easy access via localhost:30080
-
