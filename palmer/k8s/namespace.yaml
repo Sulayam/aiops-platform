@@ -1,0 +1,5 @@
+# k8s/namespace.yaml
+apiVersion: v1                 # API group/version for core objects
+kind: Namespace                # Object type: logical cluster partition
+metadata:
+  name: palmer                 # Namespace name; all app resources live here
