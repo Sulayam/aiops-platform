@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: palmer-ui
+  namespace: palmer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: palmer-ui
+  template:
+    metadata:
+      labels:
+        app: palmer-ui
+    spec:
+      containers:
+      - name: ui
+        image: palmer-ui:0.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: API_URL
+          value: "http://palmer-api:8000"
+        ports:
+        - containerPort: 8501
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"

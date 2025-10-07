@@ -66,6 +66,50 @@ By default, `docker` on macOS can point to **Docker Desktop’s socket**. We wan
      hash -r   # clear zsh’s command cache
      ```
 
+  Fix: point Docker CLI to Colima’s socket and build there.
+    ```bash
+    export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"
+    docker info | grep "Name:"   # should show: Name: colima
+    ```
+---
+Colima is eating CPU + RAM in the background because it’s a VM. If you’re not actively using Kubernetes, best practice is to stop it. Here’s the safe sequence:
+
+### 🔻 Stop (to free resources)
+
+```bash
+# Stop Minikube cluster
+minikube stop
+
+# Stop Colima VM
+colima stop
+```
+
+At this point, Docker containers, Kubernetes nodes, and the VM all pause. Your configs (YAMLs, deployments) remain intact.
+
+---
+
+### 🔺 Start (when you need it again)
+
+```bash
+# Start Colima VM (allocate resources back)
+colima start --cpu 4 --memory 8 --disk 40
+
+# Start Minikube cluster inside Colima
+minikube start --driver=docker
+```
+
+---
+
+### ✅ Verify
+
+```bash
+minikube status
+kubectl get nodes
+kubectl get pods -A   # all namespaces
+```
+
+You should see your old Deployments and Services. Pods may restart with fresh IPs, but functionality stays the same.
+
 ---
 
 ### 🎡 Create and manage Minikube cluster

@@ -25,6 +25,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.palmer-venv/
 
 # Package and dependency files
 pip-delete-this-directory.txt
@@ -78,3 +79,29 @@ wheels/
 # Misc
 *.tgz
 *.tar.gz
+
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.DS_Store
+.env
+.env.*
+dist/
+build/
+.eggs/
+.cache/
+.ipynb_checkpoints/
+*.egg-info/
+model/
+
+
+#tar files
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.log
+*.csv
+*.h5

@@ -1,0 +1,40 @@
+# k8s/api-deploy.yaml
+apiVersion: apps/v1            # Deployment lives in apps/v1
+kind: Deployment               # Ensures desired number of Pods are running
+metadata:
+  name: palmer-api             # Deployment name
+  namespace: palmer            # Deployed into the palmer namespace
+spec:
+  replicas: 1                  # Run one API Pod; HPA may scale this later
+  selector:                    # Ties Deployment to its Pod template via labels
+    matchLabels:
+      app: palmer-api          # Must match template.metadata.labels exactly
+  template:                    # Pod template the Deployment will manage
+    metadata:
+      labels:
+        app: palmer-api        # Pod label; used by Service and selector above
+    spec:
+      # serviceAccountName: app  # (Optional) bind Pod to SA from rbac.yaml
+      containers:
+      - name: api              # Container name within the Pod
+        image: palmer-api:0.1  # Image tag; IfNotPresent pulls only if missing
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000  # Container listens on 8000 (Uvicorn)
+        resources:             # Right-size resource envelope for scheduler/HPA
+          requests:            # Guaranteed minimum; basis for HPA utilization
+            cpu: "50m"         # 50 millicores = 0.05 vCPU
+            memory: "64Mi"     # 64 MiB memory request
+          limits:              # Hard ceiling; Pod may be OOMKilled if exceeded
+            cpu: "200m"        # 0.2 vCPU max
+            memory: "256Mi"    # 256 MiB max
+        readinessProbe:        # Gate traffic until app is ready
+          httpGet:
+            path: /            # FastAPI health on "/"
+            port: 8000
+          initialDelaySeconds: 2   # Wait before first probe
+        livenessProbe:         # Restart container if it becomes unhealthy
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 5   # Give app time to warm up before checks
