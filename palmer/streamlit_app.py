@@ -1,6 +1,8 @@
-import os, requests, streamlit as st
+import os
+import requests
+import streamlit as st
 
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
+API_URL = os.getenv("API_URL", "http://palmer.local/api")
 
 st.title("Palmer Penguins — Species Classifier")
 

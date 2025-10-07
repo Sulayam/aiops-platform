@@ -95,3 +95,13 @@ build/
 .ipynb_checkpoints/
 *.egg-info/
 model/
+
+
+#tar files
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.log
+*.csv
+*.h5

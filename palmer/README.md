@@ -16,3 +16,13 @@ Recommended sequence:
    * Observability (Prometheus, Grafana, logs).
    * Secrets management.
    * Autoscaling and resource requests/limits.
+
+#########################################################################################################################################################
+- Now when I visit http://palmer.local/api
+I see
+{
+"status": "ok"
+}
+- Now when I visit http://palmer.local/ui
+i see nothing
+- did I not deploy the model? I am trying to learn MLOps right? so dont I have to deploy the model? a lot of these MLops jobs roles ask if I have deployed models in production before. So I am trying to practise model deployment

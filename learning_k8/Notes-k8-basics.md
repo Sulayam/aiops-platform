@@ -66,6 +66,11 @@ By default, `docker` on macOS can point to **Docker Desktop’s socket**. We wan
      hash -r   # clear zsh’s command cache
      ```
 
+  Fix: point Docker CLI to Colima’s socket and build there.
+    ```bash
+    export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"
+    docker info | grep "Name:"   # should show: Name: colima
+    ```
 ---
 Colima is eating CPU + RAM in the background because it’s a VM. If you’re not actively using Kubernetes, best practice is to stop it. Here’s the safe sequence:
 
