@@ -14,7 +14,7 @@ spec:
       labels:
         app: palmer-api        # Pod label; used by Service and selector above
     spec:
-      # serviceAccountName: app  # (Optional) bind Pod to SA from rbac.yaml
+      serviceAccountName: app  # (Optional) bind Pod to SA from rbac.yaml
       containers:
       - name: api              # Container name within the Pod
         image: palmer-api:0.1  # Image tag; IfNotPresent pulls only if missing
@@ -38,3 +38,10 @@ spec:
             path: /
             port: 8000
           initialDelaySeconds: 5   # Give app time to warm up before checks
+        volumeMounts:
+        - name: model-storage
+          mountPath: /app/storage
+      volumes:
+      - name: model-storage
+        persistentVolumeClaim:
+          claimName: palmer-model-pvc
