@@ -17,7 +17,7 @@ spec:
       serviceAccountName: app  # (Optional) bind Pod to SA from rbac.yaml
       containers:
       - name: api              # Container name within the Pod
-        image: palmer-api:0.1  # Image tag; IfNotPresent pulls only if missing
+        image: palmer-api:0.5  # Image tag; IfNotPresent pulls only if missing
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000  # Container listens on 8000 (Uvicorn)

@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: ui
-        image: palmer-ui:0.1
+        image: palmer-ui:0.2
         imagePullPolicy: IfNotPresent
         env:
         - name: API_URL
