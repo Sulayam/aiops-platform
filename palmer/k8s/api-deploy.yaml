@@ -38,6 +38,12 @@ spec:
             path: /
             port: 8000
           initialDelaySeconds: 5   # Give app time to warm up before checks
+        envFrom:
+        - secretRef:
+            name: postgres-secret  # Load environment variables from secret
+        env:
+        - name: DB_HOST
+          value: postgres          # Explicitly set DB_HOST environment variable
         volumeMounts:
         - name: model-storage
           mountPath: /app/storage

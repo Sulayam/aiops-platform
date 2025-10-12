@@ -7,3 +7,4 @@ joblib
 numpy
 streamlit
 requests
+psycopg2-binary
