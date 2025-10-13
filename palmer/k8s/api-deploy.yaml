@@ -17,7 +17,7 @@ spec:
       serviceAccountName: app  # (Optional) bind Pod to SA from rbac.yaml
       containers:
       - name: api              # Container name within the Pod
-        image: palmer-api:0.5  # Image tag; IfNotPresent pulls only if missing
+        image: palmer-api:0.6  # Image tag; IfNotPresent pulls only if missing
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000  # Container listens on 8000 (Uvicorn)
@@ -39,11 +39,10 @@ spec:
             port: 8000
           initialDelaySeconds: 5   # Give app time to warm up before checks
         envFrom:
+        - configMapRef:
+            name: palmer-config
         - secretRef:
-            name: postgres-secret  # Load environment variables from secret
-        env:
-        - name: DB_HOST
-          value: postgres          # Explicitly set DB_HOST environment variable
+            name: palmer-secrets
         volumeMounts:
         - name: model-storage
           mountPath: /app/storage

@@ -17,9 +17,9 @@ spec:
       - name: ui
         image: palmer-ui:0.2
         imagePullPolicy: IfNotPresent
-        env:
-        - name: API_URL
-          value: "http://palmer-api:8000"
+        envFrom:
+          - configMapRef:
+              name: palmer-config
         ports:
         - containerPort: 8501
         resources:
