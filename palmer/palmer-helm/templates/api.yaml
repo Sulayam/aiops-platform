@@ -1,0 +1,41 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: palmer-api
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels: { app: palmer-api }
+  template:
+    metadata:
+      labels: { app: palmer-api }
+    spec:
+      containers:
+      - name: api
+        image: {{ .Values.image.api }}
+        ports: [{ containerPort: 8000 }]
+        envFrom:
+        - configMapRef: { name: palmer-config }
+        - secretRef:   { name: palmer-secrets }
+        volumeMounts:
+        - name: model
+          mountPath: /app/storage
+        resources:
+          requests: { cpu: "50m", memory: "64Mi" }
+          limits:   { cpu: "200m", memory: "256Mi" }
+      volumes:
+      - name: model
+        persistentVolumeClaim: { claimName: palmer-model-pvc }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: palmer-api
+  namespace: {{ .Values.namespace }}
+spec:
+  ports: [{ name: http, port: 8000, targetPort: 8000 }]
+  selector: { app: palmer-api }
+  type: ClusterIP
+

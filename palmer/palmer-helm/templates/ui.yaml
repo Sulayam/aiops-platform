@@ -1,0 +1,34 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: palmer-ui
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: palmer-ui }
+  template:
+    metadata:
+      labels: { app: palmer-ui }
+    spec:
+      containers:
+      - name: ui
+        image: {{ .Values.image.ui }}
+        ports: [{ containerPort: 8501 }]
+        envFrom:
+        - configMapRef: { name: palmer-config }
+        resources:
+          requests: { cpu: "50m", memory: "64Mi" }
+          limits:   { cpu: "200m", memory: "256Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: palmer-ui
+  namespace: {{ .Values.namespace }}
+spec:
+  ports: [{ name: http, port: 80, targetPort: 8501 }]
+  selector: { app: palmer-ui }
+  type: ClusterIP
+

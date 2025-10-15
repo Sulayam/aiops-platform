@@ -105,3 +105,5 @@ model/
 *.log
 *.csv
 *.h5
+
+palmer/app/model.pkl

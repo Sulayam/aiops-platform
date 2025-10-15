@@ -1,0 +1,17 @@
+namespace: palmer
+
+image:
+  api: palmer-api:0.7
+  ui:  palmer-ui:0.2
+postgres:
+  db: palmerdb
+  user: palmeruser
+  password: palmerpass
+replicaCount: 1
+
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 60
+  enabled: true
+

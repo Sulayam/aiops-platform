@@ -22,11 +22,18 @@ app = FastAPI()
 
 # Load the model
 MODEL_PATH = "/app/storage/model.pkl"
-if os.path.exists(MODEL_PATH):
-    model = joblib.load(MODEL_PATH)
-    print(f"✅ Loaded model from {MODEL_PATH}")
-else:
-    raise FileNotFoundError(f"❌ Model not found at {MODEL_PATH}")
+
+# 1. Try model from PVC
+if not os.path.exists(MODEL_PATH):
+    fallback_path = "/app/default-model/model.pkl"
+    if os.path.exists(fallback_path):
+        print("⚠️  Falling back to default image-baked model.")
+        MODEL_PATH = fallback_path
+    else:
+        raise FileNotFoundError(f"❌ Model not found at {MODEL_PATH} or {fallback_path}")
+
+print(f"✅ Using model at {MODEL_PATH}")
+model = joblib.load(MODEL_PATH)
 CLASSES = model.named_steps["clf"].classes_.tolist()
 
 class PenguinData(BaseModel):

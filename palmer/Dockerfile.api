@@ -1,7 +1,15 @@
 FROM python:3.11-slim
 WORKDIR /app
+
+# Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy app code and model
 COPY app ./app
+
+# Store model inside the image in a safe path
+RUN mkdir -p /app/default-model && cp ./app/model.pkl /app/default-model/model.pkl
+
 EXPOSE 8000
-CMD ["uvicorn","app.main:app","--host","0.0.0.0","--port","8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

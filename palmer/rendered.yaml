@@ -1,0 +1,225 @@
+---
+# Source: palmer-helm/templates/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: palmer
+---
+# Source: palmer-helm/templates/postgres-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: palmer
+type: Opaque
+stringData:
+  POSTGRES_DB: palmerdb
+  POSTGRES_USER: palmeruser
+  POSTGRES_PASSWORD: palmerpass
+---
+# Source: palmer-helm/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: palmer-config
+  namespace: palmer
+data:
+  API_URL: "http://palmer-api.palmer.svc.cluster.local:8000"
+  MODEL_PATH: "/app/storage/model.pkl"
+  DB_HOST: "postgres"
+  POSTGRES_DB: palmerdb
+  POSTGRES_USER: palmeruser
+---
+# Source: palmer-helm/templates/model-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: palmer-model-pvc
+  namespace: palmer
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: local-path
+---
+# Source: palmer-helm/templates/postgres-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: palmer
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 500Mi
+  storageClassName: local-path
+---
+# Source: palmer-helm/templates/api.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: palmer-api
+  namespace: palmer
+spec:
+  ports: [{ name: http, port: 8000, targetPort: 8000 }]
+  selector: { app: palmer-api }
+  type: ClusterIP
+---
+# Source: palmer-helm/templates/postgres.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: palmer
+spec:
+  ports: [{ port: 5432, targetPort: 5432 }]
+  selector: { app: postgres }
+  type: ClusterIP
+---
+# Source: palmer-helm/templates/ui.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: palmer-ui
+  namespace: palmer
+spec:
+  ports: [{ name: http, port: 80, targetPort: 8501 }]
+  selector: { app: palmer-ui }
+  type: ClusterIP
+---
+# Source: palmer-helm/templates/api.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: palmer-api
+  namespace: palmer
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: palmer-api }
+  template:
+    metadata:
+      labels: { app: palmer-api }
+    spec:
+      containers:
+      - name: api
+        image: palmer-api:0.6
+        ports: [{ containerPort: 8000 }]
+        envFrom:
+        - configMapRef: { name: palmer-config }
+        - secretRef:   { name: palmer-secrets }
+        volumeMounts:
+        - name: model
+          mountPath: /app/storage
+        resources:
+          requests: { cpu: "50m", memory: "64Mi" }
+          limits:   { cpu: "200m", memory: "256Mi" }
+      volumes:
+      - name: model
+        persistentVolumeClaim: { claimName: palmer-model-pvc }
+---
+# Source: palmer-helm/templates/postgres.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: palmer
+spec:
+  selector:
+    matchLabels: { app: postgres }
+  template:
+    metadata:
+      labels: { app: postgres }
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16
+        ports: [{ containerPort: 5432 }]
+        envFrom:
+        - secretRef: { name: postgres-secret }
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        livenessProbe:
+          exec: { command: ["pg_isready", "-U", "palmeruser"] }
+          initialDelaySeconds: 30
+        readinessProbe:
+          exec: { command: ["pg_isready", "-U", "palmeruser"] }
+          initialDelaySeconds: 5
+      volumes:
+      - name: data
+        persistentVolumeClaim: { claimName: postgres-pvc }
+---
+# Source: palmer-helm/templates/ui.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: palmer-ui
+  namespace: palmer
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: palmer-ui }
+  template:
+    metadata:
+      labels: { app: palmer-ui }
+    spec:
+      containers:
+      - name: ui
+        image: palmer-ui:0.2
+        ports: [{ containerPort: 8501 }]
+        envFrom:
+        - configMapRef: { name: palmer-config }
+        resources:
+          requests: { cpu: "50m", memory: "64Mi" }
+          limits:   { cpu: "200m", memory: "256Mi" }
+---
+# Source: palmer-helm/templates/hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: palmer-api-hpa
+  namespace: palmer
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: palmer-api
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60
+---
+# Source: palmer-helm/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: palmer
+  namespace: palmer
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+  - host: palmer.local
+    http:
+      paths:
+      - path: /api(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: palmer-api
+            port: { number: 8000 }
+      - path: /()(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: palmer-ui
+            port: { number: 80 }
