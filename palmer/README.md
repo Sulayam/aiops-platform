@@ -17,12 +17,31 @@ Recommended sequence:
    * Secrets management.
    * Autoscaling and resource requests/limits.
 
-#########################################################################################################################################################
-- Now when I visit http://palmer.local/api
-I see
-{
-"status": "ok"
-}
-- Now when I visit http://palmer.local/ui
-i see nothing
-- did I not deploy the model? I am trying to learn MLOps right? so dont I have to deploy the model? a lot of these MLops jobs roles ask if I have deployed models in production before. So I am trying to practise model deployment
+---
+# Palmer Project – Resume Later Notes
+
+## Current Status (as of Oct 19, 2025)
+- Helm deployment working ✅
+- All services (UI, API, Postgres) are deployed via Helm in `palmer` namespace
+- Autoscaling (HPA) for API is configured
+- PersistentVolumes for API model + Postgres are in use
+- Docker image version used: palmer-api:0.7 (includes fallback model)
+- PVC model mount still needs verification for live model availability
+
+## What Needs Attention on Resume
+- Validate model mounting from PVC (or use fallback strategy)
+- Confirm cluster is running and kubectl context is valid
+- Possibly clean up/rebuild cluster if versions are outdated
+
+## Commands Used Recently
+```bash
+# Upgrade helm release
+helm upgrade palmer ./palmer-helm --namespace palmer
+
+# Check logs
+kubectl logs -n palmer -l app=palmer-api
+
+# Rebuild and load Docker image
+docker build -f Dockerfile.api -t palmer-api:0.7 .
+docker save palmer-api:0.7 -o palmer-api-0.7.tar
+docker load -i palmer-api-0.7.tar
